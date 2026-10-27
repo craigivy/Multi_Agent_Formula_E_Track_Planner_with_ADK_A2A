@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="340" viewBox="0 0 900 340" role="img" aria-labelledby="title desc">
+  <title id="title">What you will build</title>
+  <desc id="desc">Two projects. In the track-planner project, running in Cloud Shell, the track_planner agent uses three tools: get_track_topology, fia_assessor and remote_gatekeeper. In the gatekeeper project, running on Agent Runtime, the gatekeeper agent uses the verify_infrastructure_checklist tool. The remote_gatekeeper tool calls the gatekeeper agent over A2A.</desc>
+  <defs>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#5f6368"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1a73e8"/>
+    </marker>
+  </defs>
+  <style>
+    .project { fill: #f8f9fa; stroke: #dadce0; stroke-width: 1.5; }
+    .project-title { font: 600 16px "Google Sans", Roboto, Arial, sans-serif; fill: #202124; }
+    .project-subtitle { font: 14px "Google Sans", Roboto, Arial, sans-serif; fill: #5f6368; }
+    .agent { fill: #1e8e3e; stroke: #137333; stroke-width: 1.5; }
+    .agent-text { font: 600 15px "Roboto Mono", Menlo, Consolas, monospace; fill: #ffffff; }
+    .tool { fill: #ffffff; stroke: #9aa0a6; stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .tool-text { font: 14px "Roboto Mono", Menlo, Consolas, monospace; fill: #3c4043; }
+    .uses { stroke: #5f6368; stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
+    .a2a { stroke: #1a73e8; stroke-width: 3; fill: none; }
+    .a2a-text { font: 700 15px "Google Sans", Roboto, Arial, sans-serif; fill: #1a73e8; }
+    .legend-text { font: 13px "Google Sans", Roboto, Arial, sans-serif; fill: #5f6368; }
+  </style>
+
+  <!-- track-planner project -->
+  <rect class="project" x="20" y="20" width="480" height="270" rx="12"/>
+  <text class="project-title" x="40" y="50">track-planner project</text>
+  <text class="project-subtitle" x="40" y="72">runs in Cloud Shell</text>
+
+  <rect class="agent" x="40" y="151" width="170" height="46" rx="23"/>
+  <text class="agent-text" x="125" y="179" text-anchor="middle">track_planner</text>
+
+  <rect class="tool" x="270" y="92" width="210" height="42" rx="6"/>
+  <text class="tool-text" x="375" y="118" text-anchor="middle">get_track_topology</text>
+  <rect class="tool" x="270" y="153" width="210" height="42" rx="6"/>
+  <text class="tool-text" x="375" y="179" text-anchor="middle">fia_assessor</text>
+  <rect class="tool" x="270" y="214" width="210" height="42" rx="6"/>
+  <text class="tool-text" x="375" y="240" text-anchor="middle">remote_gatekeeper</text>
+
+  <path class="uses" d="M210 174 C 240 174, 240 113, 268 113" marker-end="url(#arrow-grey)"/>
+  <path class="uses" d="M210 174 L 268 174" marker-end="url(#arrow-grey)"/>
+  <path class="uses" d="M210 174 C 240 174, 240 235, 268 235" marker-end="url(#arrow-grey)"/>
+
+  <!-- gatekeeper project -->
+  <rect class="project" x="580" y="20" width="300" height="270" rx="12"/>
+  <text class="project-title" x="600" y="50">gatekeeper project</text>
+  <text class="project-subtitle" x="600" y="72">runs on Agent Runtime</text>
+
+  <rect class="agent" x="650" y="112" width="160" height="46" rx="23"/>
+  <text class="agent-text" x="730" y="140" text-anchor="middle">gatekeeper</text>
+
+  <rect class="tool" x="590" y="214" width="280" height="42" rx="6"/>
+  <text class="tool-text" x="730" y="240" text-anchor="middle">verify_infrastructure_checklist</text>
+
+  <path class="uses" d="M730 158 L 730 212" marker-end="url(#arrow-grey)"/>
+
+  <!-- A2A call -->
+  <path class="a2a" d="M480 235 C 560 235, 570 135, 646 135" marker-end="url(#arrow-blue)"/>
+  <rect x="525" y="168" width="48" height="24" rx="4" fill="#ffffff"/>
+  <text class="a2a-text" x="549" y="186" text-anchor="middle">A2A</text>
+
+  <!-- legend -->
+  <rect class="agent" x="40" y="306" width="34" height="20" rx="10"/>
+  <text class="legend-text" x="82" y="321">Agent</text>
+  <rect class="tool" x="140" y="306" width="34" height="20" rx="4"/>
+  <text class="legend-text" x="182" y="321">Tool</text>
+  <line class="uses" x1="230" y1="316" x2="268" y2="316" marker-end="url(#arrow-grey)"/>
+  <text class="legend-text" x="276" y="321">Uses</text>
+  <line class="a2a" x1="330" y1="316" x2="368" y2="316" marker-end="url(#arrow-blue)"/>
+  <text class="legend-text" x="376" y="321">Calls over A2A</text>
+</svg>

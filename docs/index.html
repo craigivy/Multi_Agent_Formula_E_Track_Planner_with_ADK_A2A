@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build a Multi-Agent Formula E Track Planner with ADK &amp; A2A | Google Codelabs</title>
+  <link rel="icon" type="image/png" href="https://www.gstatic.com/devrel-devsite/prod/v4672e09ff336ee3bbcf1f2a3ff4c85675e2f79fb6bb9c35ae98dff0bc8eb4800/developers/images/favicon.png">
+  
+  <!-- Google Fonts & Material Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Fixed Top Header -->
+  <header class="devsite-header">
+    <div class="header-left">
+      <a href="#" class="codelab-logo" aria-label="Google Codelabs">
+        <svg viewBox="0 0 40 40" width="28" height="28">
+          <circle cx="20" cy="20" r="18" fill="#1a73e8"/>
+          <path fill="#ffffff" d="M12 20a8 8 0 0 1 13.6-5.7l2.1-2.1A11 11 0 1 0 31 20h-3a8 8 0 0 1-8 8 8 8 0 0 1-8-8z"/>
+          <circle cx="20" cy="20" r="4" fill="#fbbc04"/>
+        </svg>
+        <span class="codelab-logo-text">Google Codelabs</span>
+      </a>
+      <span class="header-divider"></span>
+      <span class="header-title">Build a Multi-Agent Formula E Track Planner with ADK &amp; A2A</span>
+    </div>
+    
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progress-bar-fill"></div>
+    </div>
+  </header>
+
+  <!-- Main Codelab Layout -->
+  <div class="codelab-container">
+    <!-- Left Navigation Drawer -->
+    <nav class="devsite-book-nav" id="drawer" aria-label="Codelab Table of Contents">
+      <div class="drawer-header">
+        <div class="filter-box">
+          <span class="material-icons">filter_list</span>
+          <input type="text" id="step-filter" placeholder="Filter steps..." aria-label="Filter steps">
+        </div>
+      </div>
+      
+      <ul class="step-list" id="step-list">
+      <li class="step-item active" data-step="0">
+        <span class="step-number">1</span>
+        <span class="step-label">Overview</span>
+      </li>
+      <li class="step-item" data-step="1">
+        <span class="step-number">2</span>
+        <span class="step-label">Set up your environment</span>
+      </li>
+      <li class="step-item" data-step="2">
+        <span class="step-number">3</span>
+        <span class="step-label">Scaffold the projects and add the assets</span>
+      </li>
+      <li class="step-item" data-step="3">
+        <span class="step-number">4</span>
+        <span class="step-label">Write the FIA compliance skill</span>
+      </li>
+      <li class="step-item" data-step="4">
+        <span class="step-number">5</span>
+        <span class="step-label">Write the agents</span>
+      </li>
+      <li class="step-item" data-step="5">
+        <span class="step-number">6</span>
+        <span class="step-label">Evaluate the agents</span>
+      </li>
+      <li class="step-item" data-step="6">
+        <span class="step-number">7</span>
+        <span class="step-label">Deploy the Gatekeeper to Agent Runtime</span>
+      </li>
+      <li class="step-item" data-step="7">
+        <span class="step-number">8</span>
+        <span class="step-label">Connect to the deployed Gatekeeper over A2A</span>
+      </li>
+      <li class="step-item" data-step="8">
+        <span class="step-number">9</span>
+        <span class="step-label">Troubleshooting and clean up</span>
+      </li>
+      </ul>
+    </nav>
+    
+    <!-- Backdrop for Mobile Navigation -->
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+    <!-- Step Content Area -->
+    <main class="codelab-content" id="main-content">
+    <div class="codelab-step active" id="step-0" data-step="0">
+      <h2 class="step-title">1. Overview</h2>
+      <aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p>This lab is based on <a href="https://codelabs.developers.google.com/formula-e-build-multi-agent-track-planner" target="_blank" rel="noopener">Build a Multi-Agent Formula E Track Planner with ADK & A2A</a>.</p>
+</aside>
+<p>In this codelab you build a multi-agent system that designs a Formula E street circuit and gets it approved against a simplified set of FIA rules.</p>
+<p>You will use <strong><code translate="no" dir="ltr">agents-cli</code></strong> to generate two standard <a href="https://adk.dev/" target="_blank" rel="noopener">Agent Development Kit (ADK)</a> projects, then write the parts that matter: an Agent Skill, three agents, and an evaluation. Everything else (project layout, server, dependencies, deployment config) comes from the CLI.</p>
+<h3>New to Formula E?</h3>
+<p>You don't need to know motorsport. These five terms are enough:</p>
+<ul class="devsite-list">
+  <li><strong>Formula E</strong>: the FIA's all-electric racing championship. Most races are on temporary street circuits in city centres.</li>
+  <li><strong>Homologation</strong>: the FIA's official approval that a circuit is safe to race on. No homologation, no race.</li>
+  <li><strong>Regenerative braking</strong>: when the car brakes, its motors recharge the battery. Harder braking recovers more energy, so this codelab's rules ask for at least one heavy braking zone.</li>
+  <li><strong>CAD layers</strong>: named layers in the circuit's design drawings, such as the racing line, the pit lane and the barriers. The FIA checks that the mandatory ones are there.</li>
+  <li><strong>Attack Mode</strong>: drivers get a temporary power boost by driving through an activation zone placed off the racing line.</li>
+</ul>
+<p>Your agents play both sides: one designs the circuit, and two check it for the FIA.</p>
+<h3>What you will build</h3>
+<div class="image-container"><img src="images/architecture.svg" alt="Architecture: in the track-planner project, running in Cloud Shell, the track_planner agent uses get_track_topology, fia_assessor and remote_gatekeeper. remote_gatekeeper calls the gatekeeper agent over A2A. In the gatekeeper project, running on Agent Runtime, the gatekeeper agent uses verify_infrastructure_checklist." class="devsite-screenshot" loading="lazy"></div>
+<p>Green boxes are agents and dashed boxes are their tools, the same way the ADK playground draws them. Two of the tools wrap other agents: <code translate="no" dir="ltr">fia&lt;em&gt;assessor</code> is the FIA Assessor agent with the FIA compliance skill, and <code translate="no" dir="ltr">remote&lt;/em&gt;gatekeeper</code> calls the Gatekeeper agent in the other project over A2A.</p>
+<div class="table-container"><table class="devsite-table"><thead><tr><th>Agent</th><th>Project</th><th>Job</th><th>thinking_level</th></tr></thead><tbody><tr><td>Lead Architect</td></tr></tbody></table></div>
+<p>track-planner | Reads the venue, asks the Assessor, fixes problems, asks the Gatekeeper for approval | HIGH | | FIA Assessor | track-planner | Checks the layout using the FIA skill and a scoring tool | MEDIUM | | Digital Twin Gatekeeper | gatekeeper | Runs the final homologation checklist | LOW |</p>
+<h3>What you will learn</h3>
+<ul class="devsite-list">
+  <li>How <code translate="no" dir="ltr">agents-cli scaffold create</code> lays out an ADK project, and which files you edit.</li>
+  <li>How to package domain knowledge as an <a href="https://agentskills.io/" target="_blank" rel="noopener">Agent Skill</a> (<code translate="no" dir="ltr">SKILL.md</code>, <code translate="no" dir="ltr">references/</code>, <code translate="no" dir="ltr">scripts/</code>) and load it with ADK's <code translate="no" dir="ltr">SkillToolset</code>.</li>
+  <li>How to match <code translate="no" dir="ltr">thinking_level</code> to each agent's job.</li>
+  <li>How to evaluate agents with <code translate="no" dir="ltr">agents-cli eval run</code>.</li>
+  <li>How to deploy an agent to Agent Runtime, how <strong>Agent Identity</strong> differs from a service account, and how to call the deployed agent over the <strong>A2A</strong> protocol.</li>
+</ul>
+<aside class="warning">
+  <div class="aside-header"><span class="material-icons">warning</span><strong>Warning:</strong></div>
+  <p>The venues, FIA rules and energy model in this codelab are simplified teaching material, not official FIA or Formula E data.</p>
+</aside>
+<hr>
+    </div>
+
+    <div class="codelab-step" id="step-1" data-step="1">
+      <h2 class="step-title">2. Set up your environment</h2>
+      <h3>Before you begin</h3>
+<p>You need a Google Cloud project with billing enabled. If you're following this codelab at an event, use the account and project you were given.</p>
+<aside class="warning">
+  <div class="aside-header"><span class="material-icons">warning</span><strong>Warning:</strong></div>
+  <p><strong>First time using this account with Google Cloud?</strong> Open the <a href="https://console.cloud.google.com/" target="<em>blank" rel="noopener">Google Cloud console</a>, sign in, and accept the Terms of Service before running any commands. Otherwise <code translate="no" dir="ltr">gcloud</code> commands fail with <code translate="no" dir="ltr">UREQ&lt;/em&gt;TOS&lt;em&gt;NOT&lt;/em&gt;ACCEPTED</code>.</p>
+</aside>
+<h3>Open Cloud Shell and set your project</h3>
+<p>Open <a href="https://shell.cloud.google.com/" target="_blank" rel="noopener">Cloud Shell</a>, then run:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash"># Cloud Shell sometimes opens without a project set. If so, this sets it to
+# the first project on your account.
+if [ -z &quot;$(gcloud config get-value project 2&gt;/dev/null)&quot; ]; then
+  gcloud config set project &quot;$(gcloud projects list --format=&#x27;value(projectId)&#x27; --limit=1)&quot;
+fi
+
+export GOOGLE_CLOUD_PROJECT=&quot;$(gcloud config get-value project)&quot;
+export REGION=&quot;us-central1&quot;
+export ASSETS=&quot;$HOME/devrel-demos/codelabs/formula-e-track-planner&quot;
+echo &quot;Project: $GOOGLE_CLOUD_PROJECT  Region: $REGION&quot;</code></pre>
+</devsite-code>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p>These variables only last for the current Cloud Shell session. If Cloud Shell reconnects, or you open a new tab and need them there, set them again. Step 7 shows all of them in one block.</p>
+</aside>
+<h3>Create credentials for your agents</h3>
+<p><code translate="no" dir="ltr">gcloud</code> is already signed in, but the Python code your agents run uses <strong>Application Default Credentials (ADC)</strong>, which need a separate sign-in:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">gcloud auth application-default login</code></pre>
+</devsite-code>
+<p>Open the link it prints, sign in with the same account, copy the code, and paste it back into Cloud Shell. Then set the project that quota is billed to:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">gcloud auth application-default set-quota-project &quot;$GOOGLE_CLOUD_PROJECT&quot;</code></pre>
+</devsite-code>
+<aside class="warning">
+  <div class="aside-header"><span class="material-icons">warning</span><strong>Warning:</strong></div>
+  <p>If you skip this, agent runs fail with <code translate="no" dir="ltr">service account info is missing &#x27;email&#x27; field</code>.</p>
+</aside>
+<h3>Enable the APIs</h3>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">gcloud services enable \
+    aiplatform.googleapis.com \
+    cloudbuild.googleapis.com \
+    artifactregistry.googleapis.com \
+    storage.googleapis.com \
+    cloudresourcemanager.googleapis.com \
+    serviceusage.googleapis.com \
+    compute.googleapis.com \
+    iam.googleapis.com \
+    logging.googleapis.com \
+    cloudtrace.googleapis.com</code></pre>
+</devsite-code>
+<p>What each API is for:</p>
+<div class="table-container"><table class="devsite-table"><thead><tr><th>APIs</th><th>Used for</th></tr></thead><tbody><tr><td>aiplatform</td></tr></tbody></table></div>
+<p>Gemini models and Agent Runtime | | cloudresourcemanager, serviceusage, iam | The project and permission checks that gcloud and agents-cli deploy run | | compute | Creates the Compute Engine default service account that the deploy in Step 7 uses | | storage, logging, cloudtrace | Storage, logs and traces, as the Agent Runtime setup guide recommends | | cloudbuild, artifactregistry | Container builds and images, included as a precaution for the deploy in Step 7 |</p>
+<p>Many projects already have some of these turned on. Enabling an API that's already on changes nothing.</p>
+<h3>Install <code translate="no" dir="ltr">uv</code> and <code translate="no" dir="ltr">agents-cli</code></h3>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH=&quot;$HOME/.local/bin:$PATH&quot;
+uv tool install google-agents-cli==1.10.0
+agents-cli --version</code></pre>
+</devsite-code>
+<p>This codelab was tested with <code translate="no" dir="ltr">agents-cli</code> 1.10.0, so install that version to get the same generated files.</p>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p><strong>No API keys.</strong> Everything in this codelab authenticates with your Google Cloud credentials (Application Default Credentials). Don't create a <code translate="no" dir="ltr">GEMINI&lt;em&gt;API&lt;/em&gt;KEY</code>.</p>
+</aside>
+<hr>
+    </div>
+
+    <div class="codelab-step" id="step-2" data-step="2">
+      <h2 class="step-title">3. Scaffold the projects and add the assets</h2>
+      <h3>Generate both projects</h3>
+<p><code translate="no" dir="ltr">agents-cli scaffold create</code> generates a complete, deployable ADK project. Run it twice, once for each agent system.</p>
+<p>First, the track planner:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~
+agents-cli scaffold create track-planner \
+  --agent adk \
+  --deployment-target agent_runtime \
+  --region &quot;$REGION&quot; \
+  --prototype \
+  --yes</code></pre>
+</devsite-code>
+<p>Then the gatekeeper:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~
+agents-cli scaffold create gatekeeper \
+  --agent adk \
+  --deployment-target agent_runtime \
+  --region &quot;$REGION&quot; \
+  --prototype \
+  --yes</code></pre>
+</devsite-code>
+<div class="table-container"><table class="devsite-table"><thead><tr><th>Flag</th><th>Meaning</th></tr></thead><tbody><tr><td>--agent adk</td></tr></tbody></table></div>
+<p>Start from the Python ADK template | | --deployment-target agent_runtime | Generate the server and config for Agent Runtime | | --prototype | Skip CI/CD; keep the project minimal | | --yes | Accept the defaults without prompting |</p>
+<h3>Explore the layout</h3>
+<p>The generated project looks like this. You only edit the files marked ✍️:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">text</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="text"><code class="language-text">track-planner/
+├── agents-cli-manifest.yaml   # Records the template, deployment target and root agent name
+├── pyproject.toml             # Dependencies (google-adk, a2a-sdk, ...)
+├── .env                       # Your project and model location, filled in for you
+├── Dockerfile                 # Used by `agents-cli deploy`; copies app/ into the image
+├── app/
+│   ├── agent.py               # ✍️ Your agents
+│   ├── fast_api_app.py        # Generated server: ADK API, A2A routes, Agent Runtime routes
+│   └── app_utils/             # Generated helpers (A2A, sessions)
+└── tests/
+    ├── unit/                  # Fast tests with no model calls
+    ├── integration/           # Generated server tests
+    └── eval/                  # ✍️ eval_config.yaml and datasets for `agents-cli eval`</code></pre>
+</devsite-code>
+<p>For a description of every generated file, see <a href="https://google.github.io/agents-cli/guide/project-structure/" target="_blank" rel="noopener">Project structure</a> in the Agents CLI guide.</p>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p>Open <code translate="no" dir="ltr">app/agent.py</code>: the template ships with a small weather agent. Its <code translate="no" dir="ltr">name</code> matches <code translate="no" dir="ltr">root&lt;em&gt;agent&lt;/em&gt;name</code> in <code translate="no" dir="ltr">agents-cli-manifest.yaml</code>. Keep those two in sync when you write your own agents.</p>
+</aside>
+<h3>Try the generated agent</h3>
+<p>Before changing anything, run the template agent to see what the scaffold gives you. Install the dependencies and start the local playground on port 8080:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~/track-planner
+agents-cli install
+agents-cli playground --port 8080</code></pre>
+</devsite-code>
+<p>To open it, click the <strong>Web Preview</strong> button in the Cloud Shell toolbar (the eye icon at the top right), then select <strong>Preview on port 8080</strong>.</p>
+<p>In the playground, ask the template agent a question its tools can answer, for example:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">text</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="text"><code class="language-text">What&#x27;s the weather in San Francisco?</code></pre>
+</devsite-code>
+<p>The side panel shows each event, including the <code translate="no" dir="ltr">get_weather</code> tool call and its result. You will use the same view later to follow your own agents.</p>
+<p>When you've finished, go back to the terminal and press <strong>Ctrl+C</strong> to stop the playground.</p>
+<h3>Add the Formula E assets</h3>
+<p>The venue data, FIA rules, physics script, tools and eval datasets are not the lesson, so you copy them from GitHub rather than typing them:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~
+git clone --depth 1 --filter=blob:none --sparse \
+  --branch formula-e-lab-v1 \
+  https://github.com/tdsymonds/devrel-demos.git
+git -C devrel-demos sparse-checkout set codelabs/formula-e-track-planner
+
+cp -r &quot;$ASSETS/track-planner/.&quot; ~/track-planner/
+cp -r &quot;$ASSETS/gatekeeper/.&quot; ~/gatekeeper/</code></pre>
+</devsite-code>
+<p><code translate="no" dir="ltr">formula-e-lab-v1</code> is a fixed release tag, so everyone gets the same files. <code translate="no" dir="ltr">$ASSETS</code> was set in Step 2 and points at the folder you just cloned.</p>
+<p>This adds these files:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">text</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="text"><code class="language-text">track-planner/
+├── app/
+│   ├── tools.py                                  # get_track_topology, evaluate_track_layout
+│   ├── auth.py                                   # A2A client with per-request token refresh
+│   ├── data/circuits.json                        # Five candidate venues
+│   └── skills/fia-compliance-skill/
+│       ├── references/track_regulations.md       # The FIA rules
+│       └── scripts/calculate_regen_zones.py      # Braking-energy calculator
+└── tests/
+    ├── unit/test_tools.py
+    └── eval/datasets/track_eval.json, track_eval_quick.json
+gatekeeper/
+├── app/tools.py                                  # verify_infrastructure_checklist
+└── tests/unit/test_tools.py</code></pre>
+</devsite-code>
+<h3>Install and test</h3>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">(cd ~/track-planner &amp;&amp; agents-cli install &amp;&amp; uv run pytest tests/unit)
+(cd ~/gatekeeper &amp;&amp; agents-cli install &amp;&amp; uv run pytest tests/unit)</code></pre>
+</devsite-code>
+<p><code translate="no" dir="ltr">agents-cli install</code> runs <code translate="no" dir="ltr">uv sync</code> to create a virtual environment for each project. All unit tests should pass.</p>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p><strong>Falling behind?</strong> At any point, copy the finished files with <code translate="no" dir="ltr">cp -r &quot;$ASSETS/solution/track-planner/.&quot; ~/track-planner/</code> and <code translate="no" dir="ltr">cp -r &quot;$ASSETS/solution/gatekeeper/.&quot; ~/gatekeeper/</code>.</p>
+</aside>
+<hr>
+    </div>
+
+    <div class="codelab-step" id="step-3" data-step="3">
+      <h2 class="step-title">4. Write the FIA compliance skill</h2>
+      <p>An <a href="https://agentskills.io/" target="<em>blank" rel="noopener">Agent Skill</a> packages instructions, reference documents and scripts in one folder. ADK's <a href="https://adk.dev/skills/" target="</em>blank" rel="noopener"><code translate="no" dir="ltr">SkillToolset</code></a> loads it in three levels, so the agent only reads what it needs:</p>
+<div class="table-container"><table class="devsite-table"><thead><tr><th>Level</th><th>File</th><th>When the agent sees it</th></tr></thead><tbody><tr><td>1</td></tr></tbody></table></div>
+<p>SKILL.md front matter (name, description) | Always (a few dozen tokens) | | 2 | SKILL.md body | When it calls load<em>skill | | 3 | references/, scripts/ | When it calls load</em>skill<em>resource or run</em>skill_script |</p>
+<p>The skill lives in <code translate="no" dir="ltr">app/skills/</code> because the generated <code translate="no" dir="ltr">Dockerfile</code> only copies <code translate="no" dir="ltr">app/</code> into the deployed image.</p>
+<h3>Look at the level 3 files</h3>
+<p>You copied the skill's level 3 files in Step 3:</p>
+<ul class="devsite-list">
+  <li><code translate="no" dir="ltr">references/track_regulations.md</code> holds the rules the Assessor checks: length and width limits, which barrier each braking zone needs, the mandatory CAD layers (plus medical layers for hospital routes), the regeneration target and the Attack Mode rules.</li>
+  <li><code translate="no" dir="ltr">scripts/calculate&lt;em&gt;regen&lt;/em&gt;zones.py</code> is a calculator. Given a braking zone's entry speed, exit speed and braking distance, it works out the energy recovered and the barrier the corner needs, so the agent never has to guess the physics.</li>
+</ul>
+<p>Run the script for London's Turn 10, where cars brake from 215 to 55 kph over 82 metres:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~/track-planner
+uv run python app/skills/fia-compliance-skill/scripts/calculate_regen_zones.py \
+  --entry-kph 215 --exit-kph 55 --brake-dist-m 82</code></pre>
+</devsite-code>
+<p>The car recovers about 508 kW here, above the 250 kW target. It slows at more than 2G, so the corner needs Tecpro barriers (<code translate="no" dir="ltr">F1_TEC3</code>):</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">json</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="json"><code class="language-json">{&quot;entry_kph&quot;: 215.0, &quot;exit_kph&quot;: 55.0, &quot;brake_dist_m&quot;: 82.0, &quot;deceleration_g&quot;: 2.07, &quot;estimated_regen_kw&quot;: 507.7, &quot;meets_250kw_target&quot;: true, &quot;required_barrier_layer&quot;: &quot;F1_TEC3&quot;}</code></pre>
+</devsite-code>
+<h3>Write <code translate="no" dir="ltr">SKILL.md</code></h3>
+<p>Create the file that ties the skill together:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cloudshell edit app/skills/fia-compliance-skill/SKILL.md</code></pre>
+</devsite-code>
+<p>Add this content:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">yaml</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="yaml"><code class="language-yaml">---
+name: fia-compliance-skill
+description: &gt;
+  FIA Formula E street circuit rules: length and width limits, mandatory CAD
+  layers, barrier selection, and Gen3 regenerative braking estimates. Use when
+  designing, checking or fixing a Formula E circuit layout.
+---
+
+# FIA Formula E Compliance
+
+Follow these steps for every circuit you check.
+
+1. **Read the rules.** Call `load_skill_resource` with
+   `file_path=&quot;references/track_regulations.md&quot;`.
+2. **Estimate regeneration for every heavy braking zone.** Call
+   `run_skill_script` with `file_path=&quot;scripts/calculate_regen_zones.py&quot;` and
+   `args={&quot;entry-kph&quot;: &lt;entry&gt;, &quot;exit-kph&quot;: &lt;exit&gt;, &quot;brake-dist-m&quot;: &lt;distance&gt;}`.
+   Never guess kW values. Use the highest `estimated_regen_kw` as the
+   circuit&#x27;s peak regeneration.
+3. **Check barriers.** Any zone whose `required_barrier_layer` is `F1_TEC3`
+   needs the `F1_TEC3` CAD layer.
+4. **Report.** List every rule the layout fails and a concrete fix for each
+   one.</code></pre>
+</devsite-code>
+<p>The <code translate="no" dir="ltr">description</code> is what the model reads to decide when to use the skill, so it says both <em>what</em> the skill covers and <em>when</em> to use it.</p>
+<h3>See how the skill is wired</h3>
+<p>Open <code translate="no" dir="ltr">app/tools.py</code> in the Cloud Shell Editor:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cloudshell edit app/tools.py</code></pre>
+</devsite-code>
+<p>Find the <code translate="no" dir="ltr">build&lt;em&gt;fia&lt;/em&gt;skill_toolset</code> function:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">python</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="python"><code class="language-python">def build_fia_skill_toolset() -&gt; SkillToolset:
+    return SkillToolset(
+        skills=[load_skill_from_dir(SKILL_DIR)],
+        code_executor=UnsafeLocalCodeExecutor(),
+    )</code></pre>
+</devsite-code>
+<ul class="devsite-list">
+  <li><code translate="no" dir="ltr">load&lt;em&gt;skill&lt;/em&gt;from_dir</code> reads the skill folder: <code translate="no" dir="ltr">SKILL.md</code>, <code translate="no" dir="ltr">references/</code> and <code translate="no" dir="ltr">scripts/</code>.</li>
+  <li><code translate="no" dir="ltr">SkillToolset</code> turns it into tools the agent can call: <code translate="no" dir="ltr">list&lt;em&gt;skills</code>, <code translate="no" dir="ltr">load&lt;/em&gt;skill</code>, <code translate="no" dir="ltr">load&lt;em&gt;skill&lt;/em&gt;resource</code> and <code translate="no" dir="ltr">run&lt;em&gt;skill&lt;/em&gt;script</code>.</li>
+  <li><code translate="no" dir="ltr">UnsafeLocalCodeExecutor</code> lets <code translate="no" dir="ltr">run&lt;em&gt;skill&lt;/em&gt;script</code> run the Python script on this machine. It is fine for a lab; use a sandboxed executor in production.</li>
+</ul>
+<p>You will attach this toolset to the Assessor in the next step.</p>
+<hr>
+    </div>
+
+    <div class="codelab-step" id="step-4" data-step="4">
+      <h2 class="step-title">5. Write the agents</h2>
+      <p>Gemini 3 models control reasoning with <a href="https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/thinking#gemini-3-and-later-models" target="<em>blank" rel="noopener"><code translate="no" dir="ltr">thinking&lt;/em&gt;level</code></a> (<code translate="no" dir="ltr">LOW</code>, <code translate="no" dir="ltr">MEDIUM</code> or <code translate="no" dir="ltr">HIGH</code>) instead of a token budget. In ADK you set it with <code translate="no" dir="ltr">types.ThinkingConfig(thinking_level=types.ThinkingLevel.HIGH)</code>. Match it to each agent's job: more thinking means better planning but more latency and cost.</p>
+<h3>The Gatekeeper (<code translate="no" dir="ltr">LOW</code>)</h3>
+<p>The Gatekeeper only runs a deterministic checklist, so it needs little reasoning. Replace the template agent:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cloudshell edit ~/gatekeeper/app/agent.py</code></pre>
+</devsite-code>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">python</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="python"><code class="language-python">&quot;&quot;&quot;FIA Digital Twin Gatekeeper agent.
+
+This agent runs in its own project and is deployed to Agent Runtime. The track
+planner calls it over the A2A protocol.
+&quot;&quot;&quot;
+
+from google.adk.agents import Agent
+from google.adk.apps import App
+from google.adk.models import Gemini
+from google.genai import types
+
+from app.tools import verify_infrastructure_checklist
+
+# Tested with Gemini 3.8 Flash. To try Gemini 4 Argon, change this to
+# &quot;gemini-4-argon&quot;, delete the `temperature` settings below (Argon ignores
+# them) and run `uv add &quot;google-genai&gt;=2.30.1&quot;` in this project first.
+MODEL = &quot;gemini-3.8-flash&quot;
+
+root_agent = Agent(
+    # Must match `root_agent_name` in agents-cli-manifest.yaml.
+    name=&quot;gatekeeper&quot;,
+    model=Gemini(
+        model=MODEL,
+        retry_options=types.HttpRetryOptions(attempts=3),
+    ),
+    description=(
+        &quot;FIA Digital Twin Gatekeeper. Runs the final homologation checklist &quot;
+        &quot;for a Formula E circuit blueprint.&quot;
+    ),
+    instruction=(
+        &quot;You are the FIA Digital Twin Gatekeeper. For every circuit blueprint &quot;
+        &quot;you receive, call `verify_infrastructure_checklist` with its circuit &quot;
+        &quot;ID, CAD layers, minimum width and peak regeneration. Reply with the &quot;
+        &quot;status and any missing CAD layers. Never approve a blueprint the &quot;
+        &quot;checklist rejects.&quot;
+    ),
+    # A deterministic checklist needs little reasoning: keep it fast and cheap.
+    generate_content_config=types.GenerateContentConfig(
+        temperature=0.0,
+        thinking_config=types.ThinkingConfig(
+            thinking_level=types.ThinkingLevel.LOW,
+        ),
+    ),
+    tools=[verify_infrastructure_checklist],
+)
+
+app = App(
+    root_agent=root_agent,
+    name=&quot;app&quot;,
+)</code></pre>
+</devsite-code>
+<h3>Run the Gatekeeper locally</h3>
+<p>Open a <strong>second Cloud Shell tab</strong> and start the Gatekeeper's generated server on port 8001:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~/gatekeeper
+APP_URL=http://localhost:8001 uv run uvicorn app.fast_api_app:app --port 8001</code></pre>
+</devsite-code>
+<aside class="warning">
+  <div class="aside-header"><span class="material-icons">warning</span><strong>Warning:</strong></div>
+  <p><strong>Keep this tab open and leave the Gatekeeper server running.</strong> Do not stop it (<code translate="no" dir="ltr">Ctrl+C</code>) or close the tab—the track planner and the evaluation in Step 6 call this local Gatekeeper server on <code translate="no" dir="ltr">http://localhost:8001</code> until you switch to the deployed one in Step 8.</p>
+</aside>
+<p>Back in the first tab, look at the Gatekeeper's A2A <strong>agent card</strong>. This is how other agents discover what the Gatekeeper is and what it can do:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">curl -s http://localhost:8001/a2a/app/.well-known/agent-card.json | jq .</code></pre>
+</devsite-code>
+<p>You should see JSON like this (shortened):</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">json</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="json"><code class="language-json">{
+  &quot;name&quot;: &quot;gatekeeper&quot;,
+  &quot;description&quot;: &quot;FIA Digital Twin Gatekeeper. Runs the final homologation checklist for a Formula E circuit blueprint.&quot;,
+  &quot;supportedInterfaces&quot;: [
+    {&quot;url&quot;: &quot;http://localhost:8001/a2a/app&quot;, &quot;protocolBinding&quot;: &quot;JSONRPC&quot;, &quot;protocolVersion&quot;: &quot;1.0&quot;}
+  ],
+  &quot;skills&quot;: [
+    {&quot;id&quot;: &quot;gatekeeper&quot;, &quot;name&quot;: &quot;model&quot;, &quot;description&quot;: &quot;FIA Digital Twin Gatekeeper. ...&quot;},
+    {&quot;id&quot;: &quot;gatekeeper-verify_infrastructure_checklist&quot;, &quot;name&quot;: &quot;verify_infrastructure_checklist&quot;, &quot;description&quot;: &quot;Runs the final homologation checklist ...&quot;}
+  ]
+}</code></pre>
+</devsite-code>
+<ul class="devsite-list">
+  <li><code translate="no" dir="ltr">name</code> and <code translate="no" dir="ltr">description</code> come straight from your <code translate="no" dir="ltr">Agent(...)</code> definition.</li>
+  <li><code translate="no" dir="ltr">skills</code> lists what the agent can do. ADK added <code translate="no" dir="ltr">verify&lt;em&gt;infrastructure&lt;/em&gt;checklist</code> automatically, using the tool's docstring.</li>
+  <li><code translate="no" dir="ltr">supportedInterfaces</code> tells callers where to send A2A requests. That's why you started the server with <code translate="no" dir="ltr">APP_URL=http://localhost:8001</code>: a caller reads the card first, then sends its requests to whatever <code translate="no" dir="ltr">url</code> the card advertises.</li>
+</ul>
+<p>Nothing here was written by hand: the scaffolded server builds the card from your agent. The track planner will read this card to find and call the Gatekeeper.</p>
+<h3>The Assessor (<code translate="no" dir="ltr">MEDIUM</code>) and the Lead Architect (<code translate="no" dir="ltr">HIGH</code>)</h3>
+<p>The track planner has two agents:</p>
+<ul class="devsite-list">
+  <li>The <strong>Assessor</strong> weighs several rules, so it gets <code translate="no" dir="ltr">MEDIUM</code>. It is wrapped in an <code translate="no" dir="ltr">AgentTool</code>, so the Lead Architect calls it like a function and gets the verdict back.</li>
+  <li>The <strong>Lead Architect</strong> plans, fixes and coordinates, so it gets <code translate="no" dir="ltr">HIGH</code>. It reaches the Gatekeeper through a <code translate="no" dir="ltr">RemoteA2aAgent</code>, created by <code translate="no" dir="ltr">create&lt;em&gt;remote&lt;/em&gt;gatekeeper_agent()</code> in <code translate="no" dir="ltr">app/auth.py</code>, and also wraps it in an <code translate="no" dir="ltr">AgentTool</code>.</li>
+</ul>
+<p>Why wrap both helpers as tools? An <code translate="no" dir="ltr">AgentTool</code> returns its answer to the caller, so the Lead Architect stays in charge and writes the final blueprint. If the Gatekeeper were a <code translate="no" dir="ltr">sub_agent</code> instead, the Lead Architect would hand the conversation over to it, and the Gatekeeper's short status would become the final answer.</p>
+<aside class="warning">
+  <div class="aside-header"><span class="material-icons">warning</span><strong>Warning:</strong></div>
+  <p>Don't set <code translate="no" dir="ltr">output&lt;em&gt;schema</code> on an agent that also has <code translate="no" dir="ltr">tools</code> or <code translate="no" dir="ltr">sub&lt;/em&gt;agents</code>. It disables tool calling and delegation.</p>
+</aside>
+<p>Open the track planner's <code translate="no" dir="ltr">app/agent.py</code> file:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cloudshell edit ~/track-planner/app/agent.py</code></pre>
+</devsite-code>
+<p>Copy the following code and <strong>replace the entire contents</strong> of <code translate="no" dir="ltr">~/track-planner/app/agent.py</code> with it:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">python</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="python"><code class="language-python">&quot;&quot;&quot;Formula E track planner: Lead Architect, FIA Assessor and remote Gatekeeper.
+
+- The Lead Architect (root agent) designs the circuit and stays in charge.
+- The FIA Assessor checks the layout and is called as a tool (`AgentTool`).
+- The Gatekeeper runs in a separate project. It is also called as a tool, over
+  A2A, so its verdict comes back to the Lead Architect.
+&quot;&quot;&quot;
+
+from google.adk.agents import Agent
+from google.adk.apps import App
+from google.adk.models import Gemini
+from google.adk.tools.agent_tool import AgentTool
+from google.genai import types
+
+from app.auth import create_remote_gatekeeper_agent
+from app.tools import build_fia_skill_toolset
+from app.tools import evaluate_track_layout
+from app.tools import get_track_topology
+
+# Tested with Gemini 3.8 Flash. To try Gemini 4 Argon, change this to
+# &quot;gemini-4-argon&quot;, delete the `temperature` settings below (Argon ignores
+# them) and run `uv add &quot;google-genai&gt;=2.30.1&quot;` in this project first.
+MODEL = &quot;gemini-3.8-flash&quot;
+
+fia_skill_toolset = build_fia_skill_toolset()
+
+# 1. FIA Assessor: MEDIUM thinking to weigh several rules without much latency.
+assessor_agent = Agent(
+    name=&quot;fia_assessor&quot;,
+    model=Gemini(
+        model=MODEL,
+        retry_options=types.HttpRetryOptions(attempts=3),
+    ),
+    description=(
+        &quot;FIA safety and energy assessor. Audits a proposed circuit against &quot;
+        &quot;the geometry, regeneration and CAD layer rules.&quot;
+    ),
+    instruction=(
+        &quot;You are the FIA Assessor. Load the `fia-compliance-skill` and follow &quot;
+        &quot;it. Estimate regeneration for each braking zone with &quot;
+        &quot;`calculate_regen_zones.py`, then call `evaluate_track_layout` with &quot;
+        &quot;the highest value. Reply with the verdict, the score and every &quot;
+        &quot;remediation note.&quot;
+    ),
+    generate_content_config=types.GenerateContentConfig(
+        temperature=0.1,
+        thinking_config=types.ThinkingConfig(
+            thinking_level=types.ThinkingLevel.MEDIUM,
+        ),
+    ),
+    tools=[fia_skill_toolset, evaluate_track_layout],
+)
+
+# 2. Remote Gatekeeper, reached over A2A (see app/auth.py).
+remote_gatekeeper = create_remote_gatekeeper_agent()
+
+# 3. Lead Architect: HIGH thinking for multi-step planning and trade-offs.
+root_agent = Agent(
+    # Must match `root_agent_name` in agents-cli-manifest.yaml.
+    name=&quot;track_planner&quot;,
+    model=Gemini(
+        model=MODEL,
+        retry_options=types.HttpRetryOptions(attempts=3),
+    ),
+    description=(
+        &quot;Lead Formula E circuit architect. Designs FIA-compliant street &quot;
+        &quot;circuits and gets them homologated.&quot;
+    ),
+    instruction=(
+        &quot;You are the Lead Formula E Circuit Architect. For every request:\n&quot;
+        &quot;1. Call `get_track_topology` for the venue.\n&quot;
+        &quot;2. Call the `fia_assessor` tool with the full topology.\n&quot;
+        &quot;3. If the Assessor rejects the layout, propose concrete fixes (for &quot;
+        &quot;example widen a sector to 10.0m or add missing CAD layers) and &quot;
+        &quot;re-assess the fixed layout.\n&quot;
+        &quot;4. Once the Assessor passes it, call the `remote_gatekeeper` tool &quot;
+        &quot;with the circuit ID, CAD layers, minimum width and peak &quot;
+        &quot;regeneration for final approval.\n&quot;
+        &quot;5. Finish with a short blueprint: circuit ID, length, minimum width, &quot;
+        &quot;peak regeneration, every CAD layer by name, and the Gatekeeper&#x27;s &quot;
+        &quot;status.&quot;
+    ),
+    generate_content_config=types.GenerateContentConfig(
+        temperature=0.2,
+        thinking_config=types.ThinkingConfig(
+            thinking_level=types.ThinkingLevel.HIGH,
+        ),
+    ),
+    # Both helpers are tools, so their answers come back to the Lead Architect
+    # and it writes the final blueprint.
+    tools=[
+        get_track_topology,
+        AgentTool(agent=assessor_agent),
+        AgentTool(agent=remote_gatekeeper),
+    ],
+)
+
+app = App(
+    root_agent=root_agent,
+    name=&quot;app&quot;,
+)</code></pre>
+</devsite-code>
+<h3>Run the whole system in the playground</h3>
+<p>Make sure the Gatekeeper is still running in your second tab. In the first tab, start the track planner's playground:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~/track-planner
+agents-cli playground --port 8080</code></pre>
+</devsite-code>
+<p>Click <strong>Web Preview</strong> > <strong>Preview on port 8080</strong>, as you did in Step 3.</p>
+<p>Ask for a circuit at a venue that meets the rules:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">text</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="text"><code class="language-text">Design and homologate a Formula E circuit at Tokyo Bay.</code></pre>
+</devsite-code>
+<p>Watch the events panel as the agents work. You should see, in order:</p>
+<ol class="devsite-list">
+  <li><code translate="no" dir="ltr">get&lt;em&gt;track&lt;/em&gt;topology</code>: the Lead Architect loads the Tokyo Bay data.</li>
+  <li><code translate="no" dir="ltr">fia&lt;em&gt;assessor</code>: the Lead Architect hands the layout to the Assessor, which calls <code translate="no" dir="ltr">load&lt;/em&gt;skill</code>, <code translate="no" dir="ltr">load&lt;em&gt;skill&lt;/em&gt;resource</code> and <code translate="no" dir="ltr">run&lt;em&gt;skill&lt;/em&gt;script</code> (once per braking zone), then <code translate="no" dir="ltr">evaluate&lt;em&gt;track&lt;/em&gt;layout</code>.</li>
+  <li><code translate="no" dir="ltr">remote_gatekeeper</code>: the Lead Architect calls the Gatekeeper over A2A. You will see the request logged in your second tab.</li>
+  <li>A final blueprint from the Lead Architect, listing every CAD layer and the Gatekeeper's <strong>APPROVED</strong> status.</li>
+</ol>
+<p>Click any event to see its exact inputs and outputs.</p>
+<p>Now start a <strong>new session</strong> and try a venue that breaks the rules:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">text</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="text"><code class="language-text">Can the Monaco Harbour layout be homologated? If not, fix it and try again.</code></pre>
+</devsite-code>
+<p>This time the Assessor rejects the 6.8m chicane, the Lead Architect proposes a wider one, and the fixed layout goes back to the Assessor before reaching the Gatekeeper.</p>
+<p>When you've finished, press <strong>Ctrl+C</strong> in the first tab to stop the playground. Leave the Gatekeeper running in the second tab: you need it in the next step.</p>
+<hr>
+    </div>
+
+    <div class="codelab-step" id="step-5" data-step="5">
+      <h2 class="step-title">6. Evaluate the agents</h2>
+      <p><code translate="no" dir="ltr">agents-cli eval run</code> runs your agent over a dataset, records every turn and tool call, and grades the results. You decide <em>what</em> to measure in <code translate="no" dir="ltr">tests/eval/eval_config.yaml</code>.</p>
+<h3>Look at the dataset</h3>
+<p>Open the dataset in the Cloud Shell Editor:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~/track-planner
+cloudshell edit tests/eval/datasets/track_eval.json</code></pre>
+</devsite-code>
+<p>The file holds a list of <code translate="no" dir="ltr">eval&lt;em&gt;cases</code>. Each case has an <code translate="no" dir="ltr">eval&lt;/em&gt;case_id</code>, a <code translate="no" dir="ltr">prompt</code> (what the user asks), and a <code translate="no" dir="ltr">reference</code> (what a good answer looks like). The LLM judge compares the agent's answer with the reference.</p>
+<div class="table-container"><table class="devsite-table"><thead><tr><th>eval<em>case</em>id</th><th>What it tests</th></tr></thead><tbody><tr><td>fe<em>001</em>tokyo_compliant</td></tr></tbody></table></div>
+<p>A venue that passes every rule and gets approved | | fe<em>002</em>monaco<em>narrow | The 6.8m chicane fails the width rule | | fe</em>003<em>berlin</em>too<em>long | The 4350m circuit fails the length rule | | fe</em>004<em>missing</em>layers | A layout missing mandatory CAD layers | | fe<em>005</em>low<em>regen | A braking zone below the 250 kW target | | fe</em>006<em>sao</em>paulo<em>medical | Hospital access needing medical CAD layers | | fe</em>007<em>attack</em>mode | An Attack Mode zone on the racing line | | fe<em>008</em>multiturn_remediation | A multi-turn conversation: Monaco is rejected, the user asks for a fix, and the fixed layout should be approved |</p>
+<p>The last case uses <code translate="no" dir="ltr">agent_data</code> instead of <code translate="no" dir="ltr">prompt</code>. It replays the earlier turns of a conversation, so you can test how the agent handles a follow-up request, not just a single question.</p>
+<p><code translate="no" dir="ltr">track&lt;em&gt;eval&lt;/em&gt;quick.json</code> in the same folder holds just two cases: case 1 (a single question) and case 8 (a conversation). You will run that one because it's faster and uses less quota.</p>
+<h3>Write the metrics</h3>
+<p>The dataset says <em>what to ask</em> the agent. <code translate="no" dir="ltr">eval_config.yaml</code> says <em>how to score the answers</em>. <code translate="no" dir="ltr">agents-cli eval run</code> reads it after the agent has answered every case, and runs each metric on each answer.</p>
+<p>Open the file the scaffold generated:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cloudshell edit tests/eval/eval_config.yaml</code></pre>
+</devsite-code>
+<p>It already contains a generic LLM judge (<code translate="no" dir="ltr">custom&lt;em&gt;response&lt;/em&gt;quality</code>) and a <code translate="no" dir="ltr">agent&lt;em&gt;turn&lt;/em&gt;count</code> metric that only counts turns. That's a fine start for any agent, but it says nothing about Formula E. You will keep the judge and add a metric that checks a rule specific to this domain.</p>
+<p>Good evaluations usually mix two kinds of metric:</p>
+<div class="table-container"><table class="devsite-table"><thead><tr><th>Kind</th><th>How it scores</th><th>Good for</th><th>Trade-off</th></tr></thead><tbody><tr><td>LLM-as-a-judge</td></tr></tbody></table></div>
+<p>A model reads the answer and the case's reference, then gives a 1 to 5 score with an explanation | Fuzzy qualities: is the answer correct, complete and clear? | Costs a model call per case; scores can vary slightly between runs | | Code metric | A small Python function checks the answer | Exact, checkable facts: did the answer include something that must be there? | Only checks what you can express in code |</p>
+<p>Replace the file's contents with:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">yaml</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="yaml"><code class="language-yaml">metrics_to_run:
+  - custom_response_quality
+  - fia_cad_layer_compliance
+
+custom_metrics:
+  # LLM-as-a-judge. response_quality.py is generated by `agents-cli scaffold
+  # create`; it grades the final answer against the case&#x27;s `reference`.
+  - name: custom_response_quality
+    custom_function_file: response_quality.py
+
+  # Deterministic code metric: an approved blueprint must name every
+  # mandatory FIA CAD layer.
+  - name: fia_cad_layer_compliance
+    custom_function: |
+      def evaluate(instance):
+          response = str(instance.get(&quot;response&quot;) or &quot;&quot;)
+          reference = str(instance.get(&quot;reference&quot;) or &quot;&quot;)
+          # Only approvals must list every layer. Rejections and other
+          # questions (such as Attack Mode) don&#x27;t, so skip them.
+          if &quot;APPROVED&quot; not in reference:
+              return {&quot;score&quot;: 1.0, &quot;explanation&quot;: &quot;Not an approval case.&quot;}
+          required = [
+              &quot;F1_TRACK_CENTRELINE&quot;,
+              &quot;F1_PIT_ENTRY_SPEED_LIMIT_LANE&quot;,
+              &quot;F1_WALL_TEMP&quot;,
+              &quot;F1_TEC3&quot;,
+          ]
+          missing = [layer for layer in required if layer not in response]
+          return {
+              &quot;score&quot;: round(1 - len(missing) / len(required), 2),
+              &quot;explanation&quot;: &quot;Missing: &quot; + (&quot;, &quot;.join(missing) or &quot;none&quot;),
+          }</code></pre>
+</devsite-code>
+<p>What each part does:</p>
+<ul class="devsite-list">
+  <li><strong><code translate="no" dir="ltr">metrics&lt;em&gt;to&lt;/em&gt;run</code></strong> lists the metrics to run, by name. Removing a name here switches that metric off without deleting it.</li>
+  <li><strong><code translate="no" dir="ltr">custom&lt;em&gt;response&lt;/em&gt;quality</code></strong> is the LLM judge. <code translate="no" dir="ltr">custom&lt;em&gt;function&lt;/em&gt;file</code> points at <code translate="no" dir="ltr">tests/eval/response_quality.py</code>, which the scaffold generated. Open it if you want to see the judging prompt.</li>
+  <li><strong><code translate="no" dir="ltr">fia&lt;em&gt;cad&lt;/em&gt;layer&lt;em&gt;compliance</code></strong> is your code metric, written inline under <code translate="no" dir="ltr">custom&lt;/em&gt;function</code>. For each case it receives an <code translate="no" dir="ltr">instance</code> (the prompt, the agent's final <code translate="no" dir="ltr">response</code>, and the <code translate="no" dir="ltr">reference</code>). For cases where the expected answer is an approval, it checks that the response names all four mandatory CAD layers and lists any that are missing. A blueprint that leaves out <code translate="no" dir="ltr">F1_TEC3</code>, for example, scores 0.75. Other cases score 1.0, because a rejection or an Attack Mode answer doesn't need to list every layer.</li>
+</ul>
+<p>Why check CAD layers? An approved blueprint that leaves out a mandatory layer is wrong even if it reads well, and an LLM judge can overlook that. A code check applies the same rule the same way on every run.</p>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p>This metric only reads the final answer. <code translate="no" dir="ltr">instance</code> also contains <code translate="no" dir="ltr">agent&lt;em&gt;data</code>, the full record of each turn's tool calls. A more advanced metric could use it to check the <em>trajectory</em>, for example that <code translate="no" dir="ltr">remote&lt;/em&gt;gatekeeper</code> was only called after <code translate="no" dir="ltr">fia_assessor</code>.</p>
+</aside>
+<h3>Run the evaluation</h3>
+<p>Keep the local Gatekeeper running in your second tab, then run:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">agents-cli eval run \
+  --dataset tests/eval/datasets/track_eval_quick.json \
+  --config tests/eval/eval_config.yaml \
+  --concurrency 1
+ls artifacts/grade_results/</code></pre>
+</devsite-code>
+<p>The evaluation takes a few minutes. Each case runs the whole multi-agent flow, about ten model calls with the Lead Architect on <code translate="no" dir="ltr">HIGH</code> thinking, so <code translate="no" dir="ltr">Step 1/2: eval generate</code> is the slow part. It isn't stuck.</p>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p><strong>Don't wait.</strong> Deploying in Step 7 also takes several minutes, so start it now in a new Cloud Shell tab. Come back to this step when the evaluation finishes.</p>
+</aside>
+<p>When it finishes, open the HTML report in <code translate="no" dir="ltr">artifacts/grade&lt;em&gt;results/</code> with the Cloud Shell Editor. Low <code translate="no" dir="ltr">fia&lt;/em&gt;cad&lt;em&gt;layer&lt;/em&gt;compliance</code> scores tell you the Lead Architect's final answer is leaving out layers. Try tightening its instruction and running the evaluation again.</p>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p><strong>Finished early?</strong> Run all 8 cases with <code translate="no" dir="ltr">--dataset tests/eval/datasets/track_eval.json</code>. It takes about 10 minutes.</p>
+</aside>
+<hr>
+    </div>
+
+    <div class="codelab-step" id="step-6" data-step="6">
+      <h2 class="step-title">7. Deploy the Gatekeeper to Agent Runtime</h2>
+      <p>You only deploy the Gatekeeper. The track planner keeps running in Cloud Shell and calls it.</p>
+<h3>Open a new Cloud Shell tab</h3>
+<p>Deploying takes 5 to 8 minutes, so do it in a new tab while the evaluation from Step 6 finishes:</p>
+<ol class="devsite-list">
+  <li>Click <strong>Open a new tab</strong> (<strong>+</strong>) in the Cloud Shell toolbar.</li>
+  <li>A new tab doesn't keep the variables from Step 2, so set them again:</li>
+</ol>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">export GOOGLE_CLOUD_PROJECT=&quot;$(gcloud config get-value project)&quot;
+export REGION=&quot;us-central1&quot;
+export ASSETS=&quot;$HOME/devrel-demos/codelabs/formula-e-track-planner&quot;
+export PATH=&quot;$HOME/.local/bin:$PATH&quot;
+echo &quot;Project: $GOOGLE_CLOUD_PROJECT  Region: $REGION&quot;</code></pre>
+</devsite-code>
+<p>Leave the local Gatekeeper running in your second tab: the evaluation still uses it, and the deploy doesn't need it stopped.</p>
+<h3>Deploy</h3>
+<p>In the new tab, deploy the Gatekeeper. It runs as the project's Compute Engine default service account:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~/gatekeeper
+PROJECT_NUMBER=$(gcloud projects describe &quot;$GOOGLE_CLOUD_PROJECT&quot; --format=&quot;value(projectNumber)&quot;)
+agents-cli deploy \
+  --no-agent-identity \
+  --service-account &quot;${PROJECT_NUMBER}-compute@developer.gserviceaccount.com&quot; \
+  --project &quot;$GOOGLE_CLOUD_PROJECT&quot; \
+  --region &quot;$REGION&quot; \
+  --no-confirm-project</code></pre>
+</devsite-code>
+<p>Deployment takes about 5 to 8 minutes. Don't close the Cloud Shell tab while it runs. If the log stream disconnects, check progress with <code translate="no" dir="ltr">agents-cli deploy --status</code>. While you wait, go back to Step 6 and read your evaluation report.</p>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p><strong>Why this service account?</strong> Without <code translate="no" dir="ltr">--service-account</code>, Agent Runtime runs the agent as its default service agent. That's enough for the Gatekeeper, but the service agent isn't allowed to call other Agent Runtime agents, so the optional deployed track planner at the end of Step 8 would get <code translate="no" dir="ltr">403 Forbidden</code>. Granting that access needs permission to change IAM. In many projects the Compute Engine default service account has the Editor role, so it works without IAM changes. That broad access is also why Agent Identity, below, is the better choice in a project you own.</p>
+</aside>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p><strong>Own the project? Use Agent Identity instead.</strong> Agent Identity gives each deployed agent its own system-managed principal, instead of a service account shared across workloads. <code translate="no" dir="ltr">agents-cli</code> grants IAM roles to the new identity, so you need the Owner or Project IAM Admin role. Run this instead of the command above:</p>
+</aside>
+<aside class="warning">
+  <div class="aside-header"><span class="material-icons">warning</span><strong>Warning:</strong></div>
+  <p><strong>Agent Identity failed with </strong><strong><code translate="no" dir="ltr">Permission &#x27;resourcemanager.projects.setIamPolicy&#x27; denied</code></strong><strong>?</strong> Your account can't change IAM policy, but the failed attempt has already created an empty Agent Runtime resource. Delete it and reset the deployment record, then run the service account deploy above:</p>
+</aside>
+<h3>Inspect the agent's identity</h3>
+<p><code translate="no" dir="ltr">agents-cli</code> records the deployed resource in <code translate="no" dir="ltr">deployment_metadata.json</code>:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">export RUNTIME_ID=$(jq -r .remote_agent_runtime_id ~/gatekeeper/deployment_metadata.json)
+echo &quot;$RUNTIME_ID&quot;
+
+curl -s -H &quot;Authorization: Bearer $(gcloud auth print-access-token)&quot; \
+  &quot;https://${REGION}-aiplatform.googleapis.com/v1beta1/${RUNTIME_ID}&quot; \
+  | jq -r .spec.effectiveIdentity</code></pre>
+</devsite-code>
+<p>The second line of output is the identity the Gatekeeper runs as:</p>
+<div class="table-container"><table class="devsite-table"><thead><tr><th>Deployed with</th><th>Example output</th></tr></thead><tbody><tr><td>The service account (default)</td></tr></tbody></table></div>
+<p>123456789012-compute@developer.gserviceaccount.com | | Agent Identity | agents.global.org-.system.id.goog/resources/aiplatform/projects//locations/us-central1/reasoningEngines/ |</p>
+<p>The service account is shared by everything in the project that uses it. An Agent Identity belongs to this one agent, so you can grant it exactly the roles it needs and see its actions separately in audit logs.</p>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p><strong>Want full observability?</strong> In a project where you're an Owner, <code translate="no" dir="ltr">agents-cli infra single-project</code> sets up prompt-and-response logging and a BigQuery dataset for agent analytics. It creates service accounts and IAM bindings, so it needs the same permissions as Agent Identity. See the <a href="https://google.github.io/agents-cli/guide/observability/" target="_blank" rel="noopener">Agents CLI observability guide</a>.</p>
+</aside>
+<hr>
+    </div>
+
+    <div class="codelab-step" id="step-7" data-step="7">
+      <h2 class="step-title">8. Connect to the deployed Gatekeeper over A2A</h2>
+      <p>Agent Runtime serves the Gatekeeper's generated A2A routes behind an authenticated <code translate="no" dir="ltr">/api</code> path.</p>
+<p>Make sure the evaluation from Step 6 has finished, then stop the local Gatekeeper in your second tab (<strong>Ctrl+C</strong>). From now on the track planner calls the deployed one. In your first tab, point the track planner at it:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">export RUNTIME_ID=$(jq -r .remote_agent_runtime_id ~/gatekeeper/deployment_metadata.json)
+: &quot;${RUNTIME_ID:?No deployed Gatekeeper found. Complete Step 7 first.}&quot;
+cd ~/track-planner
+echo &quot;GATEKEEPER_A2A_URL=https://${REGION}-aiplatform.googleapis.com/reasoningEngines/v1/${RUNTIME_ID}/api/a2a/app&quot; &gt;&gt; .env</code></pre>
+</devsite-code>
+<h3>Why the client refreshes its token</h3>
+<p>Open <code translate="no" dir="ltr">app/auth.py</code>. Google Cloud access tokens expire after one hour, so a client that sets a fixed <code translate="no" dir="ltr">Authorization</code> header at startup starts failing with <code translate="no" dir="ltr">401 Unauthorized</code> after an hour. <code translate="no" dir="ltr">GoogleAuthRefresh</code> subclasses <code translate="no" dir="ltr">httpx.Auth</code> and checks the credentials on <strong>every</strong> request, refreshing them when needed. <code translate="no" dir="ltr">create&lt;em&gt;remote&lt;/em&gt;gatekeeper_agent()</code> only attaches it for <code translate="no" dir="ltr">https://</code> URLs.</p>
+<h3>Run it end to end</h3>
+<p>Start the playground again so it picks up the new <code translate="no" dir="ltr">GATEKEEPER&lt;em&gt;A2A&lt;/em&gt;URL</code>:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">agents-cli playground --port 8080</code></pre>
+</devsite-code>
+<p>Click <strong>Web Preview</strong> > <strong>Preview on port 8080</strong>, start a new session, and ask:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">text</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="text"><code class="language-text">Assess the Monaco Harbour layout, widen the chicane to 11m, and get Gatekeeper approval.</code></pre>
+</devsite-code>
+<p>The events look the same as in Step 5, but the <code translate="no" dir="ltr">remote_gatekeeper</code> call now goes to the Gatekeeper on Agent Runtime instead of your second tab.</p>
+<h3>See the call arrive on Agent Runtime</h3>
+<p>Prove the request really reached the deployed Gatekeeper over A2A:</p>
+<ol class="devsite-list">
+  <li>In the Cloud console, search for <strong>Agent Platform</strong>, then open <strong>Deployments</strong> in the left menu.</li>
+  <li>Select <strong>gatekeeper</strong>.</li>
+  <li>Open the <strong>Sessions</strong> tab.</li>
+</ol>
+<p>You will see a new session whose <strong>User ID</strong> starts with <code translate="no" dir="ltr">A2A&lt;em&gt;USER&lt;/em&gt;</code>. The Gatekeeper's A2A server created it when your track planner called it. Open the <strong>Traces</strong> tab on the same page to see the Gatekeeper's model call and its <code translate="no" dir="ltr">verify&lt;em&gt;infrastructure&lt;/em&gt;checklist</code> tool call for that request.</p>
+<h3>Optional: deploy the track planner too</h3>
+<p>So far the track planner runs in Cloud Shell, so its A2A calls to the Gatekeeper use <strong>your</strong> credentials. Deploy the planner as well and both agents run on Agent Runtime, calling each other with their own deployed identities.</p>
+<p>Press <strong>Ctrl+C</strong> to stop the playground, then deploy the planner the same way as the Gatekeeper:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">cd ~/track-planner
+PROJECT_NUMBER=$(gcloud projects describe &quot;$GOOGLE_CLOUD_PROJECT&quot; --format=&quot;value(projectNumber)&quot;)
+agents-cli deploy \
+  --no-agent-identity \
+  --service-account &quot;${PROJECT_NUMBER}-compute@developer.gserviceaccount.com&quot; \
+  --project &quot;$GOOGLE_CLOUD_PROJECT&quot; \
+  --region &quot;$REGION&quot; \
+  --no-confirm-project</code></pre>
+</devsite-code>
+<p>Both agents run as the same Compute Engine service account. Keep <code translate="no" dir="ltr">--service-account</code>: without it, the planner runs as Agent Runtime's default service agent and can't call the Gatekeeper (see <strong>Why this service account?</strong> in Step 7).</p>
+<aside class="special">
+  <div class="aside-header"><span class="material-icons">info</span><strong>Note:</strong></div>
+  <p><strong>Used Agent Identity for the Gatekeeper?</strong> Use it for the planner too, by replacing the <code translate="no" dir="ltr">PROJECT_NUMBER</code> line and the <code translate="no" dir="ltr">--no-agent-identity</code> and <code translate="no" dir="ltr">--service-account</code> flags with <code translate="no" dir="ltr">--agent-identity</code>. The planner gets its own Agent Identity, separate from the Gatekeeper's, so the A2A call is truly agent to agent. <code translate="no" dir="ltr">agents-cli</code> grants that identity <code translate="no" dir="ltr">roles/aiplatform.user</code>, which lets it call the Gatekeeper.</p>
+</aside>
+<p>How the deployed planner reaches the Gatekeeper:</p>
+<ul class="devsite-list">
+  <li><code translate="no" dir="ltr">agents-cli deploy</code> copies the values in <code translate="no" dir="ltr">.env</code> into the deployment, so the planner gets the <code translate="no" dir="ltr">GATEKEEPER&lt;em&gt;A2A&lt;/em&gt;URL</code> you added above.</li>
+  <li>Inside Agent Runtime, <code translate="no" dir="ltr">GoogleAuthRefresh</code> in <code translate="no" dir="ltr">app/auth.py</code> picks up the planner's deployed identity instead of yours.</li>
+</ul>
+<p>Deployment takes about 5 to 8 minutes. When it finishes, check which identity the planner runs as:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">export PLANNER_ID=$(jq -r .remote_agent_runtime_id deployment_metadata.json)
+curl -s -H &quot;Authorization: Bearer $(gcloud auth print-access-token)&quot; \
+  &quot;https://${REGION}-aiplatform.googleapis.com/v1beta1/${PLANNER_ID}&quot; \
+  | jq -r .spec.effectiveIdentity</code></pre>
+</devsite-code>
+<p>To try the deployed system:</p>
+<ol class="devsite-list">
+  <li>In the Cloud console, go back to <strong>Agent Platform</strong> > <strong>Deployments</strong>.</li>
+  <li>Select <strong>track-planner</strong> and open the <strong>Playground</strong> tab.</li>
+  <li>Enter:</li>
+</ol>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">text</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="text"><code class="language-text">Design and homologate a Formula E circuit at Tokyo Bay.</code></pre>
+</devsite-code>
+<ol class="devsite-list">
+  <li>Wait for the blueprint with the Gatekeeper's <strong>APPROVED</strong> status.</li>
+  <li>Go back to <strong>Deployments</strong>, select <strong>gatekeeper</strong> and open the <strong>Sessions</strong> tab. The newest <code translate="no" dir="ltr">A2A&lt;em&gt;USER&lt;/em&gt;</code> session came from the deployed planner, not from Cloud Shell.</li>
+</ol>
+<p>When you clean up in the next step, delete the planner as well:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">curl -X DELETE -H &quot;Authorization: Bearer $(gcloud auth print-access-token)&quot; \
+  &quot;https://${REGION}-aiplatform.googleapis.com/v1beta1/${PLANNER_ID}?force=true&quot;</code></pre>
+</devsite-code>
+<hr>
+    </div>
+
+    <div class="codelab-step" id="step-8" data-step="8">
+      <h2 class="step-title">9. Troubleshooting and clean up</h2>
+      <h3>Troubleshooting</h3>
+<div class="table-container"><table class="devsite-table"><thead><tr><th>Symptom</th><th>Fix</th></tr></thead><tbody><tr><td>UREQ<em>TOS</em>NOT_ACCEPTED</td></tr></tbody></table></div>
+<p>Accept the Terms of Service in the Cloud console, then retry. | | Project is (unset) | Re-run the project commands in Step 2. | | service account info is missing 'email' field | Run gcloud auth application-default login (Step 2), then restart any running servers. | | FileNotFoundError for SKILL.md | Complete Step 4, or copy $ASSETS/solution/track-planner/. into ~/track-planner/. | | Connection refused to localhost:8001 | Start the local Gatekeeper (Step 5), or set GATEKEEPER<em>A2A</em>URL to the deployed one (Step 8). | | Permission 'resourcemanager.projects.setIamPolicy' denied on deploy | Your account can't use Agent Identity. Follow the clean-up box in Step 7, then use the service account deploy. | | The deployed track planner reports 403 Forbidden from the Gatekeeper | The planner's identity isn't allowed to call the Gatekeeper. Redeploy it with --service-account as in Step 7, or with --agent-identity if you own the project. | | 429 RESOURCE_EXHAUSTED | You've hit the Gemini quota. Wait a minute, or add --concurrency 1 --qps 2 to agents-cli eval run. | | Address already in use | Stop the other server, or pick another --port. |</p>
+<h3>Clean up</h3>
+<p>Delete the deployed Gatekeeper so it doesn't keep running:</p>
+<devsite-code>
+  <div class="code-header">
+    <span class="code-lang">bash</span>
+    <button class="copy-button" onclick="copyCode(this)" aria-label="Copy code">
+      <span class="material-icons">content_copy</span>
+      <span class="copy-text">Copy</span>
+    </button>
+  </div>
+  <pre class="devsite-click-to-copy" syntax="bash"><code class="language-bash">export RUNTIME_ID=$(jq -r .remote_agent_runtime_id ~/gatekeeper/deployment_metadata.json)
+: &quot;${RUNTIME_ID:?No deployed Gatekeeper found.}&quot;
+curl -X DELETE -H &quot;Authorization: Bearer $(gcloud auth print-access-token)&quot; \
+  &quot;https://${REGION}-aiplatform.googleapis.com/v1beta1/${RUNTIME_ID}?force=true&quot;</code></pre>
+</devsite-code>
+<p>If you created a project just for this codelab, you can delete the whole project instead. If you're at an event, keep the project you were given until the organisers say otherwise.</p>
+<h3>What you learned</h3>
+<ul class="devsite-list">
+  <li><code translate="no" dir="ltr">agents-cli scaffold create</code> gives you a standard, deployable ADK project; you only write agents, skills and evaluations.</li>
+  <li>Agent Skills keep domain knowledge out of prompts until the agent needs it.</li>
+  <li><code translate="no" dir="ltr">thinking_level</code> lets you trade reasoning depth for speed per agent.</li>
+  <li><code translate="no" dir="ltr">agents-cli eval run</code> turns "does it work?" into scores you can track.</li>
+  <li>Agent Identity and A2A let independently deployed agents work together securely.</li>
+</ul>
+<h3>Learn more</h3>
+<ul class="devsite-list">
+  <li><a href="https://google.github.io/agents-cli/" target="_blank" rel="noopener">Agents CLI</a></li>
+  <li><a href="https://adk.dev/" target="_blank" rel="noopener">ADK documentation</a></li>
+  <li><a href="https://adk.dev/skills/" target="_blank" rel="noopener">ADK Skills</a></li>
+  <li><a href="https://adk.dev/a2a/" target="_blank" rel="noopener">ADK A2A</a></li>
+  <li><a href="https://docs.cloud.google.com/gemini-enterprise-agent-platform/scale/runtime/agent-identity" target="_blank" rel="noopener">Agent Identity on Agent Runtime</a></li>
+</ul>
+    </div>
+    </main>
+
+    <!-- Bottom Action Navigation Bar -->
+    <footer class="devsite-actions">
+      <button class="btn-nav btn-back" id="btn-prev" disabled aria-label="Previous step">
+        <span class="material-icons">arrow_back</span>
+        <span class="btn-label">Back</span>
+      </button>
+      
+      <span class="step-indicator" id="step-indicator">Step 1 of 9</span>
+      
+      <button class="btn-nav btn-next" id="btn-next" aria-label="Next step">
+        <span class="btn-label">Next</span>
+        <span class="material-icons">arrow_forward</span>
+      </button>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
